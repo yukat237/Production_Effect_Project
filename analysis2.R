@@ -1,66 +1,11 @@
-####------------------------####
-####  Thesis2 Data Analysis ####  
-####----------------------- ####
-
-###############################################################################
-######################### code to test 1 data #################################
-###############################################################################
-
-#------library------
-
-library(dplyr)
+                  ####------------------------####
+                  ####  Thesis2 Data Analysis ####  
+                  ####----------------------- ####
 
 
-####--- data cleaning ----####
+######################### main code to process ALL data  ##############################
 
-# set your directory and folder name that contains all data you're processing 
-# [need to modify these for your use!!] 
-dir <- "/Users/yuka/iCloudDrive/@midd/Middlebury Senior/Thesis2/"
-folderName <- "code_test"
-
-#making a file name list
-dataLoc <- paste0(dir, "/", folderName)
-setwd(dataLoc)
-fileList <- list.files(dataLoc)
-fileNum <- length(fileList)
-
-# make a dataframe for the full data
-fullDat <- data.frame(ptID = numeric(0),
-                      session = character(0),
-                      resp = character(0))
-
-
-#process each data file
-tpath <- fileList[16]
-
-  # import data
-  originalCSV<-read.csv(tpath)
-  # leave only needed columns
-  dat<-data.frame(originalCSV$participant, originalCSV$session, originalCSV$textbox.text)
-  # rename columns
-  colnames(dat) <- c("ptID","session","resp")
-  
-#  dat <- dat %>% rename(
-#    "ptID" = "originalCSV.participant",
-#    "session" = "originalCSV.session",
-#    "resp" = "originalCSV.textbox.text")
-  
-  # remove rows that are empty in resp column
-  dat <- dat[dat$resp != "",]
-  # append this df to the df with all data
-  fullDat<-rbind(fullDat,dat)
-  
-
-#4/29/23 -- \
-# this script works, but if the output probably will have an empty line. if all files are like this, need to add another line to erase that row.
-# also this script saves the data separately as csv, but i could also jsut concatenate all data in 1 file, so that RAs can work more efficiently?
-# --> if doing that, instead of the lines to save output as csv, i can write append line to a dataframe that was prepared before this lapply loop.
-
-###############################################################################
-######################### code to loop ALL data  ##############################
-###############################################################################
-  #"C:\Users\yuka\Desktop\Production_Effect_Project\retest.csv"
-  
+  #set directory & folder name that has all the csv data
   dir <- "/Users/yuka/Desktop/Production_Effect_Project"
   folderName <- "data_midd"
   
@@ -70,27 +15,12 @@ tpath <- fileList[16]
   fileList <- list.files(dataLoc)
   fileNum <- length(fileList)
   
-  # make a dataframe for the full data
+  # prepare a dataframe for the full data
   fullDat <- data.frame(ptID = numeric(0),
                         session = character(0),
                         resp = character(0))
 
-  #process each data file 
-  lapply(X = fileList, FUN = function(path) {
-
-  # import data
-  originalCSV<-read.csv(path)
-  # leave only needed columns
-  dat<-data.frame(originalCSV$participant, originalCSV$session, originalCSV$textbox.text)
-  # rename columns
-  colnames(dat) <- c("ptID","session","resp")
-  # remove rows that are empty in resp column
-  dat <- dat[dat$resp != "",]
-  # append this df to the df with all data
-  fullDat<-rbind(fullDat,dat)
-  })
-  
-#or, loop
+  #loop through all data
   for (i in 1:fileNum){
   
     # import data
@@ -114,19 +44,54 @@ tpath <- fileList[16]
   }
   
   # set the output path
-  pathOut <- paste0(dataLoc,'/fulldata.csv')
+  pathOut <- paste0(dir,'/fulldata.csv')
   
   # save the output
   write.table(fullDat, pathOut, sep = ",", row.names = F)
+
   
-  #notes:
-  #5/5/23, 8:12pm: stops at i = 25 , turned out participant 31 did not have any data.  removed from the folder and rerun.
-  #                there are two "32"s. first 8:55am is ran with AF list. 
-  #                the other is ran with AE list. AE was suppsoed to be for pt31. so i guess mislabeled.  
-  #8:28pm: finally for loop worked! 
-  #        however, if you look at the output excel file, those who did not comma separated their resp were not correctly read. have to think of reading these.      
+#---------End-----------#
   
-#troubleshooting
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  #################################################################################
+  #--------                        OLD CODES                               --------
+  #################################################################################
+  
+
+#####---lapply version for the for main loop  -----
+#       (for loop was more convenient to see where it stacked so removed this version. this does not deal with ptID32 & [\n] issue)
+  
+  #process each data file 
+  lapply(X = fileList, FUN = function(path) {
+    
+    # import data
+    originalCSV<-read.csv(path)
+    # leave only needed columns
+    dat<-data.frame(originalCSV$participant, originalCSV$session, originalCSV$textbox.text)
+    # rename columns
+    colnames(dat) <- c("ptID","session","resp")
+    # remove rows that are empty in resp column
+    dat <- dat[dat$resp != "",]
+    # append this df to the df with all data
+    fullDat<-rbind(fullDat,dat)
+  })
+  
+  
+  
+  
+###---codes used to do "\n" troubleshooting -----
   fileList[16]
   fullDat <- data.frame(ptID = numeric(0),
                         session = character(0),
@@ -142,26 +107,24 @@ tpath <- fileList[16]
   write.table(fullDat, file = pathOut, sep= ",", row.names = F) 
   
   
-  ###################################################################################
-  #                              OLD
-  #################################################################################
+  
+
+#####--- the very first vesion -----
   
   
-  
-  
-#-----prerequisites-----
+#-----prerequisites
 # 1) all the data are in 1 folder
 # 2) set your directory and folder name for the data on Line19 and 20
 
 
 "C:\Users\yuka\iCloudDrive\@midd\Middlebury Senior\Thesis2\data_midd"
 
-#------library------
+#------library
 
 library(dplyr)
 
 
-####--- data cleaning ----####
+####--- data cleaning 
 
 # set your directory and folder name that contains all data you're processing 
 # [need to modify these for your use!!] 
@@ -194,3 +157,53 @@ lapply(X = fileList, FUN = function(path) {
   write.csv(dat, pathOut, row.names = F)
   
 })
+
+
+
+
+
+#####---codes I used to test 1 data-----
+
+#------library------
+
+library(dplyr)
+
+
+####--- data cleaning ----####
+
+# set your directory and folder name that contains all data you're processing 
+# [need to modify these for your use!!] 
+dir <- "/Users/yuka/iCloudDrive/@midd/Middlebury Senior/Thesis2/"
+folderName <- "code_test"
+
+#making a file name list
+dataLoc <- paste0(dir, "/", folderName)
+setwd(dataLoc)
+fileList <- list.files(dataLoc)
+fileNum <- length(fileList)
+
+# make a dataframe for the full data
+fullDat <- data.frame(ptID = numeric(0),
+                      session = character(0),
+                      resp = character(0))
+
+
+#process each data file
+tpath <- fileList[16]
+
+# import data
+originalCSV<-read.csv(tpath)
+# leave only needed columns
+dat<-data.frame(originalCSV$participant, originalCSV$session, originalCSV$textbox.text)
+# rename columns
+colnames(dat) <- c("ptID","session","resp")
+
+#  dat <- dat %>% rename(
+#    "ptID" = "originalCSV.participant",
+#    "session" = "originalCSV.session",
+#    "resp" = "originalCSV.textbox.text")
+
+# remove rows that are empty in resp column
+dat <- dat[dat$resp != "",]
+# append this df to the df with all data
+fullDat<-rbind(fullDat,dat)
