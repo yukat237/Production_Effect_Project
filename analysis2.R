@@ -31,7 +31,7 @@ fullDat <- data.frame(ptID = numeric(0),
 
 
 #process each data file
-tpath <- fileList[1]
+tpath <- fileList[16]
 
   # import data
   originalCSV<-read.csv(tpath)
@@ -123,6 +123,13 @@ tpath <- fileList[1]
   #8:28pm: finally for loop worked! 
   #        however, if you look at the output excel file, those who did not comma separated their resp were not correctly read. have to think of reading these.      
   
+#exploration
+  fileList[16]
+  pathOut <- as.character('/Users/yuka/Desktop/Production_Effect_Project/testfull.xlsx')
+  write.xlsx(fullDat, pathOut) #this works but now not separated by anything -- all concatenated. 
+  library("readr")
+  library(openxlsx)
+  paste0()
   
   ###################################################################################
   #                              OLD
