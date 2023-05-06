@@ -102,9 +102,12 @@ tpath <- fileList[16]
     # remove rows that are empty in resp column
     dat <- dat[dat$resp != "",]
     # fix errors
-    if (i == 26){
-      dat$ptID <- replace(dat$ptID, dat$ptID == '32','31')
-    }
+      # there are two of ptId 32 data, so relabel one of them
+      if (i == 26){
+        dat$ptID <- replace(dat$ptID, dat$ptID == '32','31')
+      }
+      # some resp were entered with line breaks, no comma. so replacing those with commas
+      dat$resp <- gsub("[\n]", ",", dat$resp)
     # append this df to the df with all data
     fullDat<-rbind(fullDat,dat)  
     
@@ -114,7 +117,7 @@ tpath <- fileList[16]
   pathOut <- paste0(dataLoc,'/fulldata.csv')
   
   # save the output
-  write.csv(fullDat, pathOut, row.names = F)
+  write.table(fullDat, pathOut, sep = ",", row.names = F)
   
   #notes:
   #5/5/23, 8:12pm: stops at i = 25 , turned out participant 31 did not have any data.  removed from the folder and rerun.
@@ -123,13 +126,21 @@ tpath <- fileList[16]
   #8:28pm: finally for loop worked! 
   #        however, if you look at the output excel file, those who did not comma separated their resp were not correctly read. have to think of reading these.      
   
-#exploration
+#troubleshooting
   fileList[16]
-  pathOut <- as.character('/Users/yuka/Desktop/Production_Effect_Project/testfull.xlsx')
-  write.xlsx(fullDat, pathOut) #this works but now not separated by anything -- all concatenated. 
-  library("readr")
-  library(openxlsx)
-  paste0()
+  fullDat <- data.frame(ptID = numeric(0),
+                        session = character(0),
+                        resp = character(0))
+  tpath <- fileList[16]
+  originalCSV<-read.csv(tpath)
+  dat<-data.frame(originalCSV$participant, originalCSV$session, originalCSV$textbox.text)
+  colnames(dat) <- c("ptID","session","resp")
+  dat <- dat[dat$resp != "",]
+  dat$resp <- gsub("[\n]", ",", dat$resp)
+  fullDat<-rbind(fullDat,dat)
+  pathOut <- as.character('/Users/yuka/Desktop/Production_Effect_Project/testfull.csv')
+  write.table(fullDat, file = pathOut, sep= ",", row.names = F) 
+  
   
   ###################################################################################
   #                              OLD
