@@ -48,7 +48,7 @@ for (i in 1:fileNum){
   # make a new column name to represent listname (= filename)
   dat_w_realwords$listname <- rep(fileListWL[i], times = 30)
   dat_w_realwords$listname <- gsub(".xlsx", "", dat_w_realwords$listname)
-  dat_w_realwords <- dat_w_realwords[,c(3,1,2)]
+  dat_w_realwords <- dat_w_realwords[,c(4,1,2,3)]
   
   # append this to full df
   # "C:\Users\yuka\iCloudDrive\@midd\Middlebury Senior\Thesis2\wordlist_with_real_words"
