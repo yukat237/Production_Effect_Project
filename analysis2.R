@@ -104,14 +104,18 @@ newfulldat<-rbind(noMixDat,twoMixDat,fourMixDat)
 #this does not work, review ggplot2
 #reorder to present in the preferable order
 newfulldat$mix_type <- factor(newfulldat$mix_type, levels = c("nomix","2mix","4mix"))
-newfulldat$prod_type <- factor(newfulldat$prod_type, levels = c("Silent","Aloud","Mouth","Loud"))
+newfulldat$prod_type <- factor(newfulldat$prod_type, levels = c("Loud","Aloud","Mouth","Silent"))
 
+#prep for error bars
+
+
+#Creating plots
 mainbar <- ggplot(newfulldat, aes(x=mix_type, y=hitsprop, fill=prod_type)) +
   ylim(0,0.7) +
-  geom_bar(stat = "identity",position=position_dodge(0.7), width = 0.6)+
+  geom_bar(stat = "identity",position=position_dodge(0.6), width = 0.6)+
   theme_bw() +
-  labs(y="Proportion of Hits",x="List Type")+
-  scale_fill_manual(values=c("#6fa8dc", "#ed8975", "#f886a8","#666666"))
+  labs(y="Proportion of Hits",x="List Type",fill = "Production Type")+
+  scale_fill_manual(values=c("#666666","#ed8975","#f886a8","#6fa8dc"))
 mainbar
 #i need something like this too:
 #+geom_errorbar(aes(ymin=meanHitsProp-seHitsProp,ymax=meanHitsProp+seHitsProp,color=Production),
