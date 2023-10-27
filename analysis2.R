@@ -106,20 +106,27 @@ newfulldat<-rbind(noMixDat,twoMixDat,fourMixDat)
 newfulldat$mix_type <- factor(newfulldat$mix_type, levels = c("nomix","2mix","4mix"))
 newfulldat$prod_type <- factor(newfulldat$prod_type, levels = c("Loud","Aloud","Mouth","Silent"))
 
-#prep for error bars
-
+#prep for error bars (and in general plotting)
+plottingDF<-newfulldat %>%
+  group_by(mix_type,prod_type)%>%
+  summarise(
+    seHitsProp = sd(hitsprop)/(sqrt(nrow(newfulldat)/3)),
+    meanHitsProp = mean(hitsprop)
+  )
 
 #Creating plots
-mainbar <- ggplot(newfulldat, aes(x=mix_type, y=hitsprop, fill=prod_type)) +
-  ylim(0,0.7) +
+mainbar <- ggplot(plottingDF, aes(x=mix_type, y=meanHitsProp, fill=prod_type)) +
+  ylim(0,0.6) +
   geom_bar(stat = "identity",position=position_dodge(0.6), width = 0.6)+
   theme_bw() +
+  geom_errorbar(aes(ymin=meanHitsProp-seHitsProp,ymax=meanHitsProp+seHitsProp,color=prod_type),
+                position=position_dodge(0.6), width = 0.2, color="grey40" )+
   labs(y="Proportion of Hits",x="List Type",fill = "Production Type")+
-  scale_fill_manual(values=c("#666666","#ed8975","#f886a8","#6fa8dc"))
+  scale_fill_manual(values=c("#666666","#ed8975","#f886a8","#6fa8dc"))+
+  scale_x_discrete(labels=c('Pure', '2 Mix', '4 mix'))
+
 mainbar
-#i need something like this too:
-#+geom_errorbar(aes(ymin=meanHitsProp-seHitsProp,ymax=meanHitsProp+seHitsProp,color=Production),
-#                position=position_dodge(0.6), width = 0.2, colour="grey40" )
+
 #also change x axis factor label to Pure, 2 mix, 4 mix
 
 #this is what I did in analysis 1 *****NOT RUN*****----------------
