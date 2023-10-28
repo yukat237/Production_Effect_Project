@@ -122,7 +122,7 @@ mainbar <- ggplot(plottingDF, aes(x=mix_type, y=meanHitsProp, fill=prod_type)) +
   geom_errorbar(aes(ymin=meanHitsProp-seHitsProp,ymax=meanHitsProp+seHitsProp,color=prod_type),
                 position=position_dodge(0.6), width = 0.2, color="grey40" )+
   labs(y="Proportion of Hits",x="List Type",fill = "Production Type")+
-  scale_fill_manual(values=c("#666666","#ed8975","#f886a8","#6fa8dc"))+
+  scale_fill_manual(values=c("#666666","#ed8975","#0db11a","#6fa8dc"))+
   scale_x_discrete(labels=c('Pure', '2 Mix', '4 mix'))
 
 mainbar
