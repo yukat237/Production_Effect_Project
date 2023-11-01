@@ -177,7 +177,7 @@ Anova(lm(hitsprop ~ mix_type * prod_type, data=newfulldat, contrasts=list(mix_ty
 model <- lm(hitsprop ~ mix_type * prod_type, data = newfulldat)
 newfulldat %>%
   group_by(mix_type) %>%
-  anova_test(hitsprop ~ prod_type, error = model)    
+  anova_test(hitsprop ~ prod_type, error = model)
 
 
 #pair-wise
@@ -186,20 +186,97 @@ pwc1 <- newfulldat %>%
   group_by(mix_type) %>%
   emmeans_test(hitsprop ~ prod_type, p.adjust.method = "bonferroni") 
 pwc1
+# 8 2mix     prod_type hitsprop Loud   Mouth    768    2.78   5.62e- 3 3.37e- 2 *           
+# 10 2mix     prod_type hitsprop Aloud  Mouth    768    3.07   2.24e- 3 1.34e- 2 *          
+# 13 4mix     prod_type hitsprop Loud   Aloud    768    6.48   1.61e-10 9.65e-10 ****        
+#  14 4mix     prod_type hitsprop Loud   Mouth    768    4.49   8.22e- 6 4.93e- 5 ****        
+#  15 4mix     prod_type hitsprop Loud   Silent   768    7.37   4.38e-13 2.63e-12 ****        
+# 18 4mix     prod_type hitsprop Mouth  Silent   768    2.88   4.07e- 3 2.44e- 2 * 
+
+# within 2mix 
+  # L-M *
+  # A-M *
+# within 4mix
+  # L-A ****
+  # L-M ****
+  # L-S ****
+  # M-S *
 
 pwc2 <- newfulldat %>% 
   group_by(prod_type) %>%
   emmeans_test(hitsprop ~ mix_type, p.adjust.method = "bonferroni") 
 pwc2
 
+# 2 Loud      mix_type hitsprop nomix  4mix     768    -2.55  0.0110       0.0330      *           
+#  3 Loud      mix_type hitsprop 2mix   4mix     768    -2.86  0.00436      0.0131      *           
+# 5 Aloud     mix_type hitsprop nomix  4mix     768     4.37  0.0000142    0.0000425   ****        
+#  6 Aloud     mix_type hitsprop 2mix   4mix     768     3.91  0.0000990    0.000297    ***         
+#  7 Mouth     mix_type hitsprop nomix  2mix     768     3.54  0.000419     0.00126     **         
+# 10 Silent    mix_type hitsprop nomix  2mix     768     3.11  0.00195      0.00585     **          
+#  11 Silent    mix_type hitsprop nomix  4mix     768     5.55  0.0000000399 0.000000120 ****        
+#  12 Silent    mix_type hitsprop 2mix   4mix     768     2.44  0.0149       0.0448      *   
+
+# within Loud
+  # nomix-4mix
+  # 2mix-4mix
+# within Aloud
+  # nomix-4mix
+  # 2mix-4mix
+# within Mouth
+  # nomix-2mix
+# within Silent
+  # nomix-2mix
+  # nomix-4mix
+  # 2mix-4mix
+
+
 #see if i get the same results
 joint_tests(model, by = "mix_type")
 joint_tests(model, by = "prod_type")
 
-#as chatgpt told me
+#pairwise tests as chatgpt told me
+int_em <- emmeans(model,  ~ mix_type:prod_type)
+paircomp1<-emmeans(int_em, pairwise ~ mix_type)
+  #shows no main diff bet 2mix and 4mix. nomix-2mix and nomix-4mix are diff.
+paircomp2<-emmeans(int_em, pairwise ~ prod_type)
+  #L vs all the other prod_type are diff. the rest are non sig
+
+#main interest (all pairwise)
 emmeans(model, pairwise ~ mix_type:prod_type) %>% summary()
-      
-      ### OLD ####
+
+# nomix Loud - 4mix Loud 
+# nomix Loud - 4mix Aloud 
+# nomix Loud - 4mix Silent
+# 2mix Loud - 4mix Aloud 
+# 2mix Loud - 4mix Silent 
+# 4mix Loud - 4mix Aloud  
+# 4mix Loud - 2mix Mouth 
+# 4mix Loud - 4mix Mouth 
+# 4mix Loud - 2mix Silent
+# 4mix Loud - 4mix Silent
+# nomix Aloud - 4mix Aloud
+# nomix Aloud - 4mix Aloud
+# nomix Aloud - 2mix Mouth 
+# nomix Aloud - 4mix Silent
+# 2mix Aloud - 4mix Aloud 
+# 2mix Aloud - 4mix Silent
+# 4mix Aloud - nomix Mouth
+# 4mix Aloud - nomix Silent 
+# nomix Mouth - 2mix Mouth 
+# nomix Mouth - 4mix Silent  
+# nomix Mouth - 4mix Silent
+# 2mix Mouth - nomix Silent 
+# nomix Silent - 4mix Silent
+
+
+
+
+
+
+
+
+
+      ### OLD ####=-=========================
       
 
 # get full data from scoring sheet we completed on Google drive (Scored_data_full) ----------------------------------------
