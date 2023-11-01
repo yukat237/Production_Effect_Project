@@ -14,7 +14,7 @@ library("car")
       
 #Import data
   #working on my laptop
-datPath <- "/Users/yuka/Desktop/Production_Effect_Project/Scored_data_full.csv"
+datPath <- "/Users/yuka/Desktop/Production_Effect_Project/Scored_data_full_final.csv"
 scoredDf<-read.csv(datPath, header = T)
 
 #Analysis plan
@@ -35,7 +35,7 @@ noMixDat$prod_type<- stri_sub(noMixDat$List_Type,-1,-1)
 #add hitprop
 noMixDat$hitsprop<-noMixDat$Total_Num_Correct/30
 #leave only necessary columns and clean to prep for rbind
-noMixDat<-noMixDat[,c(1,7,24,25,26)]
+noMixDat<-noMixDat[,c(1,7,25,26,27)]
 noMixDat <- noMixDat %>% 
   rename("num_correct" = "Total_Num_Correct")
 # rename values
@@ -61,6 +61,8 @@ twoMixDat <- twoMixDat[grep("[0-9]{1,2}",twoMixDat$num_correct),]
 #assign mix type "2mix"
 rownum <- nrow(twoMixDat)
 twoMixDat$mix_type <- rep("2mix",rownum)
+#change character to numeric to prep for the next line
+twoMixDat$num_correct <-twoMixDat$num_correct %>% as.numeric()
 #add hitsprop
 twoMixDat$hitsprop <- twoMixDat$num_correct/15
 #clean colnames/values to prep for rbind
@@ -84,6 +86,7 @@ fourMixDat <- melt(data=as.data.table(fourMixDat),
 rownum <- nrow(twoMixDat)
 fourMixDat$mix_type <- rep("4mix",rownum)
 #add hitsprop based on its production type
+fourMixDat$num_correct <- fourMixDat$num_correct %>% as.numeric()
 fourMixDat<-fourMixDat %>% mutate( hitsprop = case_when(
   prod_type == "Mouth_Num_Correct" ~ num_correct/9,
   prod_type != "Mouth_Num_Correct" ~ num_correct/7
@@ -96,7 +99,8 @@ fourMixDat[fourMixDat == "Aloud_Num_Correct"] <- "Aloud"
 fourMixDat[fourMixDat == "Silent_Num_Correct"] <- "Silent"
 fourMixDat[fourMixDat == "Mouth_Num_Correct"] <- "Mouth"
 fourMixDat[fourMixDat == "Loud_Num_Correct"] <- "Loud"
-
+fourMixDat$num_correct[is.na(fourMixDat$num_correct)] <- 0
+fourMixDat$hitsprop[is.na(fourMixDat$hitsprop)] <- 0
 
 ###rbind these 3 data frames--------
 newfulldat<-rbind(noMixDat,twoMixDat,fourMixDat)
@@ -122,13 +126,16 @@ mainbar <- ggplot(plottingDF, aes(x=mix_type, y=meanHitsProp, fill=prod_type)) +
   geom_errorbar(aes(ymin=meanHitsProp-seHitsProp,ymax=meanHitsProp+seHitsProp,color=prod_type),
                 position=position_dodge(0.6), width = 0.2, color="grey40" )+
   labs(y="Proportion of Hits",x="List Type",fill = "Production Type")+
-  scale_fill_manual(values=c("#666666","#ed8975","#0db11a","#6fa8dc"))+
+  scale_fill_manual(values=c("#666666","#ed8975","#B1D877","#6fa8dc"))+
   scale_x_discrete(labels=c('Pure', '2 Mix', '4 mix'))
 
 mainbar
 
-#also change x axis factor label to Pure, 2 mix, 4 mix
 
+#hist
+ggplot(newfulldat, aes(x=hitsprop, color = mix_type)) + 
+         geom_histogram(fill = "#FFFFFF", alpha=0.5, position="identity") + theme_minimal()
+       
 #this is what I did in analysis 1 *****NOT RUN*****----------------
 dfforgraph<-finalDF %>%
   group_by(List_Type,AorS)%>%
@@ -154,11 +161,43 @@ barHITS <- ggplot(
 Anova(lm(hitsprop ~ mix_type * prod_type, data=newfulldat, contrasts=list(mix_type=contr.sum, prod_type=contr.sum)), type=3)
 
 #post-hoc 
-fitlm<- aov(hitsprop~mix_type*prod_type, data = newfulldat)  
-tuk<-TukeyHSD(fitlm)
-#good website for this:https://rpubs.com/WhataBurger/Anovatype3
+#<DISCRADING THIS BC NO ASSUMPTION OF TYPE3 ANOVA?>
+      fitlm<- aov(hitsprop~mix_type*prod_type, data = newfulldat)  
+      tuk<-TukeyHSD(fitlm)
+      pander(tuk$`mix_type:prod_type`)
+#website taught me this:https://rpubs.com/WhataBurger/Anovatype3
+
+#making sure type 3 interaction tests
+#based on:
+        #https://www.datanovia.com/en/lessons/anova-in-r/#post-hoct-tests
+        #and
+        #https://cran.r-project.org/web/packages/emmeans/vignettes/interactions.html
+
+#simple main
+model <- lm(hitsprop ~ mix_type * prod_type, data = newfulldat)
+newfulldat %>%
+  group_by(mix_type) %>%
+  anova_test(hitsprop ~ prod_type, error = model)    
 
 
+#pair-wise
+library("emmeans")
+pwc1 <- newfulldat %>% 
+  group_by(mix_type) %>%
+  emmeans_test(hitsprop ~ prod_type, p.adjust.method = "bonferroni") 
+pwc1
+
+pwc2 <- newfulldat %>% 
+  group_by(prod_type) %>%
+  emmeans_test(hitsprop ~ mix_type, p.adjust.method = "bonferroni") 
+pwc2
+
+#see if i get the same results
+joint_tests(model, by = "mix_type")
+joint_tests(model, by = "prod_type")
+
+#as chatgpt told me
+emmeans(model, pairwise ~ mix_type:prod_type) %>% summary()
       
       ### OLD ####
       
