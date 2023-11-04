@@ -158,7 +158,8 @@ barHITS <- ggplot(
 ### inferential stats ----------------
 
 #I have unbalanced data and interaction is expected so type III? (using car package Anova)
-Anova(lm(hitsprop ~ mix_type * prod_type, data=newfulldat, contrasts=list(mix_type=contr.sum, prod_type=contr.sum)), type=3)
+mainanova_w_contrasts <- Anova(lm(hitsprop ~ mix_type * prod_type, data=newfulldat, contrasts=list(mix_type=contr.sum, prod_type=contr.sum)), type=3)
+mainanova_default <- Anova(lm(hitsprop ~ mix_type * prod_type, data=newfulldat), type=3)
 
 #post-hoc 
 #<DISCRADING THIS BC NO ASSUMPTION OF TYPE3 ANOVA?>
@@ -173,15 +174,13 @@ Anova(lm(hitsprop ~ mix_type * prod_type, data=newfulldat, contrasts=list(mix_ty
         #and
         #https://cran.r-project.org/web/packages/emmeans/vignettes/interactions.html
 
-#simple main
+#prep
 model <- lm(hitsprop ~ mix_type * prod_type, data = newfulldat)
-newfulldat %>%
-  group_by(mix_type) %>%
-  anova_test(hitsprop ~ prod_type, error = model)
-
 
 #pair-wise
 library("emmeans")
+library("rstatix")
+#looking at, "for each list condition, was the production different?"
 pwc1 <- newfulldat %>% 
   group_by(mix_type) %>%
   emmeans_test(hitsprop ~ prod_type, p.adjust.method = "bonferroni") 
@@ -234,15 +233,20 @@ pwc2
 joint_tests(model, by = "mix_type")
 joint_tests(model, by = "prod_type")
 
-#pairwise tests as chatgpt told me
+
+#pairwise tests as chatgpt told me------------
 int_em <- emmeans(model,  ~ mix_type:prod_type)
 paircomp1<-emmeans(int_em, pairwise ~ mix_type)
   #shows no main diff bet 2mix and 4mix. nomix-2mix and nomix-4mix are diff.
 paircomp2<-emmeans(int_em, pairwise ~ prod_type)
   #L vs all the other prod_type are diff. the rest are non sig
 
+#checking main effects directions
+emmeans(model, pairwise ~ mix_type, adjust = "bonferroni") %>% summary()
+emmeans(model, pairwise ~ prod_type, adjust = "bonferroni") %>% summary()
+
 #main interest (all pairwise)
-emmeans(model, pairwise ~ mix_type:prod_type) %>% summary()
+emmeans(model, pairwise ~ mix_type:prod_type, adjust = "bonferroni") %>% summary()
 
 # nomix Loud - 4mix Loud 
 # nomix Loud - 4mix Aloud 
