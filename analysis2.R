@@ -36,8 +36,9 @@ noMixDat$prod_type<- stri_sub(noMixDat$List_Type,-1,-1)
 noMixDat$hitsprop<-noMixDat$Total_Num_Correct/30
 #leave only necessary columns and clean to prep for rbind
 noMixDat<-noMixDat[,c(1,7,25,26,27)]
-noMixDat <- noMixDat %>% 
-  rename("num_correct" = "Total_Num_Correct")
+#this shows error: noMixDat <- noMixDat %>% rename(num_correct = Total_Num_Correct)
+colnames(noMixDat)[colnames(noMixDat) == "Total_Num_Correct"] <- "num_correct"
+
 # rename values
 noMixDat$prod_type<-as.character(noMixDat$prod_type)
 noMixDat[noMixDat == "A"] <- "Aloud"
@@ -110,11 +111,11 @@ newfulldat<-rbind(noMixDat,twoMixDat,fourMixDat)
 newfulldat$mix_type <- factor(newfulldat$mix_type, levels = c("nomix","2mix","4mix"))
 newfulldat$prod_type <- factor(newfulldat$prod_type, levels = c("Loud","Aloud","Mouth","Silent"))
 
-#prep for error bars (and in general plotting)
+#prep for error bars (and in general plotting)a #edit on 11/5/23, summarise() not working anymore so fixed
 plottingDF<-newfulldat %>%
   group_by(mix_type,prod_type)%>%
-  summarise(
-    seHitsProp = sd(hitsprop)/(sqrt(nrow(newfulldat)/3)),
+  mutate(
+    seHitsProp = sd(hitsprop)/(sqrt(nrow(newfulldat)/12)),
     meanHitsProp = mean(hitsprop)
   )
 
@@ -180,7 +181,7 @@ model <- lm(hitsprop ~ mix_type * prod_type, data = newfulldat)
 #pair-wise
 library("emmeans")
 library("rstatix")
-#looking at, "for each list condition, was the production different?"
+#looking at, "for each list condition, were there between-production-type differences?"
 pwc1 <- newfulldat %>% 
   group_by(mix_type) %>%
   emmeans_test(hitsprop ~ prod_type, p.adjust.method = "bonferroni") 
@@ -201,6 +202,8 @@ pwc1
   # L-S ****
   # M-S *
 
+
+#looking at, "for each condition condition, were there between-list differences?"
 pwc2 <- newfulldat %>% 
   group_by(prod_type) %>%
   emmeans_test(hitsprop ~ mix_type, p.adjust.method = "bonferroni") 
@@ -273,6 +276,19 @@ emmeans(model, pairwise ~ mix_type:prod_type, adjust = "bonferroni") %>% summary
 # nomix Silent - 4mix Silent
 
 
+#edits on 11/4 reading this: https://aosmith.rbind.io/2019/03/25/getting-started-with-emmeans/#all-pairwise-comparisons
+emmeans(model, pairwise ~ mix_type|prod_type, adjust = "bonferroni") %>% summary()
+  #i love this bec this is doing the "separate" stats using the same emmeans() funciton, not emmeans_test
+  #amazingly, Silent 2mix-4mix is p=0.0448 so i can say yes it's sig!  
+  #this results say,
+    # Loud obv diff, 4mix>2mix
+    # Aloud: 2mix > 4mix
+    # Mouth: 2mix = 4mix
+    # Silent: 2mix > 4mix
+
+
+#this does Tukey as a default, FYI. this is not appropriate for repeated measures and unbalanced? if im right
+emmeans(model, pairwise ~ mix_type*prod_type) %>% summary()
 
 
 
