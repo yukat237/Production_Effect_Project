@@ -15,7 +15,9 @@ library("data.table")
 library("tidyr")
 library("readxl")
 library("rstatix")
-setwd("C:/Users/tatsu/iCloudDrive/@midd/Middlebury Senior/Thesis/")
+
+#change depending on your work environment
+setwd("C:/Users/yuka/iCloudDrive/@midd/Middlebury Senior/Thesis/")
 options(max.print=1000000)
 
 #####------ read files --------#####
@@ -83,11 +85,12 @@ finalDF<-finalDF[order(finalDF$ID),]
 
 #---Finally, transfrom to do anova
 finalDF<-finalDF[,c(1,2,5,6)] #omit raw score data
-finalDF<-melt(data= finalDF, 
-              id.vars = c("ID","List_Type"),
-              variable.name = "AorS",
-              value.name = "HitsProp"
-)
+#edit on 11/5/23, melt function is not used now, so let me skip this
+        finalDF<-melt(data= finalDF, 
+                      id.vars = c("ID","List_Type"),
+                      variable.name = "AorS",
+                      value.name = "HitsProp"
+        )
 finalDF<-finalDF[order(finalDF$ID),]
 
 
@@ -100,10 +103,10 @@ bxpHITS <- ggboxplot(
   color = "AorS", palette = "jco")
 
 #part2 --bar graph
-#data prep for standard error bars
+#data prep for standard error bars #11/5/2023 -- this is not working
 dfforgraph<-finalDF %>%
   group_by(List_Type,AorS)%>%
-  summarise(
+  mutate(
     seHitsProp = sd(HitsProp)/(sqrt(nrow(finalDF)/3)),
     meanHitsProp = mean(HitsProp)
   )
@@ -116,7 +119,7 @@ dfforgraph$List_Type[dfforgraph$List_Type == "R"] <- "Random Mix"
 dfforgraph$List_Type[dfforgraph$List_Type == "P"] <- "Predictable Mix"
 dfforgraph$AorS<-as.factor(dfforgraph$AorS)
 dfforgraph$List_Type<-as.factor(dfforgraph$List_Type)
-dfforgraph<-transform(dfforgraph,List_Type=factor(List_Type, levels = c("Predictable Mix","Random Mix","Pure")) )
+dfforgraph<-transform(dfforgraph,List_Type=factor(List_Type, levels = c("Pure","Predictable Mix","Random Mix")) )
 names(dfforgraph)[names(dfforgraph) == "AorS"] <- "Production"
 
 #visualization
@@ -125,10 +128,17 @@ barHITS <- ggplot(
                        fill= Production))+ geom_bar(stat="identity", width = 0.6,position=position_dodge())+
   ylim(0,0.6)+theme_bw()+labs(y="Proportion of Hits",x="List Type")+
   geom_errorbar(aes(ymin=meanHitsProp-seHitsProp,ymax=meanHitsProp+seHitsProp,color=Production),
-                position=position_dodge(0.6), width = 0.2, colour="grey40" )
+                position=position_dodge(0.6), width = 0.2, colour="grey40" )+
+  scale_fill_manual(values=c("#ed8975","#6fa8dc"))
+
 barHITS
 
-#another ver.
+# some 2023 edits were done to match the color themes and y axis, etc., 
+
+
+
+
+#another ver. (2023 edit: this doesn't work)
 dfforgraph
 barplot(dfforgraph)
 
