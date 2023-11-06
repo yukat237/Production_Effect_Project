@@ -242,6 +242,33 @@ pwc2 <- finalDF %>%
 ##Comments --Maybe I shoud try taking out outliers? but just by looking at the graphs and where the outliers are, does not seem it would change the results
 
 
+#2023/11/5, edits for inferential analysis. for poster.
+main <- anova_test(data = finalDF, dv = HitsProp, wid = ID,
+                              within = c(List_Type, AorS))
+#main effect of prod  type only. 
+#interpret; there was a main effect of prod type on performance. 
+
+#if the interaction is not significant, you need to interpret the main effects for
+# each of the two variables: list type and AorS
+# A significant main effect can be followed up with pairwise comparisons.
+
+#since no interaction, no "group by"
+pwcH2and3 <- finalDF %>%
+  group_by(AorS) %>%
+  pairwise_t_test(
+    HitsProp ~ List_Type, paired = TRUE,
+    p.adjust.method = "bonferroni"
+  )
+pwcH2and3
+
+pwcH1 <- finalDF %>%
+  group_by(List_Type) %>%
+  pairwise_t_test(
+    HitsProp ~ AorS, paired = TRUE,
+    p.adjust.method = "bonferroni"
+  )
+pwcH1
+
 
 #####---------- Intrusion rates ------------#####
 #analyzed by one-way ANOVA, 
